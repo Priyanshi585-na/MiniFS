@@ -17,7 +17,7 @@ typedef struct{
 int inode_init();
 int inode_allocate();
 int inode_free(uint32_t inode);
-int inode_red(uint32_t inode, Inode *out);
+int inode_read(uint32_t inode, Inode *out);
 int inode_write(uint32_t inode, const Inode *in);
 
 #endif

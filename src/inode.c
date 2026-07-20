@@ -10,6 +10,7 @@ static uint8_t inode_bitmap[BLOCK_SIZE];
 
 int inode_init()
 {
+    memset(inode_bitmap, 0, BLOCK_SIZE);
     memset(inode_table, 0, sizeof(inode_table));
 
     for (uint32_t i = 0; i < INODE_TABLE_BLOCKS; i++)
@@ -75,7 +76,7 @@ int inode_free(uint32_t inode)
     return 0;
 }
 
-int inode_red(uint32_t inode, Inode *out){
+int inode_read(uint32_t inode, Inode *out){
     if(inode >= TOTAL_INODES) return -1;
     memcpy(out, &inode_table[inode], sizeof(Inode));
 
