@@ -36,7 +36,7 @@ int read_block(uint32_t block_number, void *buffer){
 int create_disk(const char* filename){
     FILE *file = fopen(filename, "wb");
 
-    if(disk == NULL) return -1;
+    if(file == NULL) return -1;
 
     fseek(file, BLOCK_SIZE*TOTAL_BLOCKS - 1, SEEK_SET);
 
