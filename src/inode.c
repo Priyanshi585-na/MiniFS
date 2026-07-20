@@ -98,3 +98,23 @@ int inode_write(uint32_t inode, const Inode *in)
 
     return 0;
 }
+
+int inode_load(){
+    if (read_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1) return -1;
+
+    for (uint32_t i = 0 ; i < INODE_TABLE_BLOCKS; i++)
+    {
+        if(read_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE)== -1) return -1;
+    }
+    return 0;
+}
+
+int inode_save(){
+    if(write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1) return -1;
+
+    for(uint32_t i = 0 ; i < INODE_TABLE_BLOCKS ; i++)
+    {
+        if(write_block(INODE_TABLE_START + i, ((uint8_t *) inode_table) + i * BLOCK_SIZE) == -1) return-1;
+    }
+    return 0;
+}

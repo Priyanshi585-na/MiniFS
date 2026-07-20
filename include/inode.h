@@ -19,5 +19,7 @@ int inode_allocate();
 int inode_free(uint32_t inode);
 int inode_read(uint32_t inode, Inode *out);
 int inode_write(uint32_t inode, const Inode *in);
+int inode_load();
+int inode_save();
 
 #endif
