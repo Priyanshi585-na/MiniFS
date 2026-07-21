@@ -43,6 +43,9 @@ int bitmap_allocate()
 }
 
 void bitmap_free(uint32_t block){
+    if (block < DATA_BLOCK_START || block >= TOTAL_BLOCKS)
+        return;
+
     uint32_t byte = block / 8;
     uint32_t bit = block%8;
 

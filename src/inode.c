@@ -40,12 +40,13 @@ int inode_allocate()
 
             if (write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
                 return -1;
-            
-            uint32_t block = INODE_TABLE_START + (inode/inodes_per_block);
-            
-            void *buffer = ((uint8_t *) inode_table) + (inode / inodes_per_block)*BLOCK_SIZE;
 
-            if(write_block(block, buffer) == -1) return -1;
+            uint32_t block = INODE_TABLE_START + (inode / inodes_per_block);
+
+            void *buffer = ((uint8_t *)inode_table) + (inode / inodes_per_block) * BLOCK_SIZE;
+
+            if (write_block(block, buffer) == -1)
+                return -1;
 
             return inode;
         }
@@ -54,9 +55,18 @@ int inode_allocate()
     return -1;
 }
 
+Inode *inode_get(uint32_t inode)
+{
+    if (inode >= TOTAL_INODES)
+        return NULL;
+
+    return &inode_table[inode];
+}
+
 int inode_free(uint32_t inode)
 {
-    if(inode >= TOTAL_INODES) return -1;
+    if (inode >= TOTAL_INODES)
+        return -1;
 
     uint32_t byte = inode / 8;
     uint32_t bit = inode % 8;
@@ -64,20 +74,24 @@ int inode_free(uint32_t inode)
     inode_bitmap[byte] &= ~(1 << bit);
     memset(&inode_table[inode], 0, sizeof(Inode));
 
-    if(write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1) return -1;
+    if (write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
+        return -1;
 
-    uint32_t inodes_per_block = BLOCK_SIZE/sizeof(Inode);
+    uint32_t inodes_per_block = BLOCK_SIZE / sizeof(Inode);
     uint32_t block = INODE_TABLE_START + (inode / inodes_per_block);
 
-    void *buffer = ((uint8_t *)inode_table) + (inode/inodes_per_block) * BLOCK_SIZE;
+    void *buffer = ((uint8_t *)inode_table) + (inode / inodes_per_block) * BLOCK_SIZE;
 
-    if(write_block(block, buffer) == -1) return -1;
+    if (write_block(block, buffer) == -1)
+        return -1;
 
     return 0;
 }
 
-int inode_read(uint32_t inode, Inode *out){
-    if(inode >= TOTAL_INODES) return -1;
+int inode_read(uint32_t inode, Inode *out)
+{
+    if (inode >= TOTAL_INODES)
+        return -1;
     memcpy(out, &inode_table[inode], sizeof(Inode));
 
     return 0;
@@ -85,36 +99,44 @@ int inode_read(uint32_t inode, Inode *out){
 
 int inode_write(uint32_t inode, const Inode *in)
 {
-    if(inode >= TOTAL_INODES) return -1;
+    if (inode >= TOTAL_INODES)
+        return -1;
 
     memcpy(&inode_table[inode], in, sizeof(Inode));
 
-    uint32_t inodes_per_block = BLOCK_SIZE/sizeof(Inode);
-    uint32_t block = INODE_TABLE_START + (inode/inodes_per_block);
-    
-    void *buffer  = ((uint8_t *)inode_table) + (inode/inodes_per_block) * BLOCK_SIZE;
+    uint32_t inodes_per_block = BLOCK_SIZE / sizeof(Inode);
+    uint32_t block = INODE_TABLE_START + (inode / inodes_per_block);
 
-    if(write_block(block, buffer) == -1) return -1;
+    void *buffer = ((uint8_t *)inode_table) + (inode / inodes_per_block) * BLOCK_SIZE;
+
+    if (write_block(block, buffer) == -1)
+        return -1;
 
     return 0;
 }
 
-int inode_load(){
-    if (read_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1) return -1;
+int inode_load()
+{
+    if (read_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
+        return -1;
 
-    for (uint32_t i = 0 ; i < INODE_TABLE_BLOCKS; i++)
+    for (uint32_t i = 0; i < INODE_TABLE_BLOCKS; i++)
     {
-        if(read_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE)== -1) return -1;
+        if (read_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE) == -1)
+            return -1;
     }
     return 0;
 }
 
-int inode_save(){
-    if(write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1) return -1;
+int inode_save()
+{
+    if (write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
+        return -1;
 
-    for(uint32_t i = 0 ; i < INODE_TABLE_BLOCKS ; i++)
+    for (uint32_t i = 0; i < INODE_TABLE_BLOCKS; i++)
     {
-        if(write_block(INODE_TABLE_START + i, ((uint8_t *) inode_table) + i * BLOCK_SIZE) == -1) return-1;
+        if (write_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE) == -1)
+            return -1;
     }
     return 0;
 }
