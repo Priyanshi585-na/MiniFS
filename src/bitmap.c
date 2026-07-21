@@ -58,3 +58,15 @@ int bitmap_is_allocated(uint32_t block_number)
 
     return (bitmap[byte] & (1 << bit)) != 0;
 }
+
+int bitmap_load()
+{
+    if(read_block(BLOCK_BITMAP_BLOCK, bitmap) == -1) return -1;
+    return 0;
+}
+
+int bitmap_save()
+{
+    if(write_block(BLOCK_BITMAP_BLOCK, bitmap) == -1) return -1;
+    return 0;
+}

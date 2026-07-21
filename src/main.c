@@ -16,16 +16,15 @@ int main()
         return 1;
     }
 
-    int inode = inode_allocate();
-    printf("Allocated inode: %d\n", inode);
+    bitmap_init();
 
-    Inode temp;
+    int block = bitmap_allocate();
 
-    if (inode_read(inode, &temp) == 0)
-    {
-        printf("Used: %d\n", temp.used);
-    }
-    printf("%zu\n", sizeof(Inode));
+    printf("Allocated: %d\n", block);
+
+    bitmap_load();
+
+    printf("Allocated after load: %d\n", bitmap_is_allocated(block));
 
     close_disk();
 }

@@ -8,5 +8,8 @@ int bitmap_init();
 int bitmap_allocate();
 void bitmap_free(uint32_t block_number);
 int bitmap_is_allocated(uint32_t block_number);
+int bitmap_load();
+int bitmap_save();
+
 
 #endif
