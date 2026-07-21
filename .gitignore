@@ -1,2 +1,9 @@
 *.exe
-*.img
+*.o
+*.obj
+
+disk.img
+
+.vscode/
+
+build/
