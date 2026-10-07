@@ -112,6 +112,38 @@ int fs_mkdir(const char *filename)
 }
 
 
+
+int fs_cd(const char* filename){
+    int inode_num = find_entry_in_directory(current_inode, filename);
+
+    if(inode_num == -1)
+        return -1;
+    
+    Inode inode;
+
+    if(inode_read(inode_num, &inode) == -1)
+        return -1;
+    
+    if(inode.type == 0)
+        return -1;
+    
+    current_inode = inode_num;
+    return 0;
+}
+
+int fs_cd_parent(){
+    Inode inode;
+
+    if(inode_read(current_inode, &inode) == -1)
+        return -1;
+    
+    current_inode = inode.parent_inode;
+
+    return 0;
+}
+
+
+
 int fs_create(const char *filename)
 {
     if (filename == NULL)
@@ -133,6 +165,7 @@ int fs_create(const char *filename)
         return -1;
     strcpy(inode.filename, filename);
     inode.size = 0;
+    inode.type = 0;
 
     memset(inode.direct_blocks, 0, sizeof(inode.direct_blocks));
 

@@ -45,6 +45,7 @@ int inode_allocate()
 
             void *buffer = ((uint8_t *)inode_table) + (inode / inodes_per_block) * BLOCK_SIZE;
 
+
             if (write_block(block, buffer) == -1)
                 return -1;
 
