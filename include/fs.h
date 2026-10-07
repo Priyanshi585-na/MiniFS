@@ -3,6 +3,13 @@
 
 #define DISK_FILE "disk.img"
 
+typedef struct 
+{
+    char name[32];
+    uint32_t inode_number;
+}DirectoryEntry;
+
+
 int fs_create(const char *filename);
 int fs_format();
 int fs_mount();

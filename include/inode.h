@@ -6,13 +6,15 @@
 #define MAX_FILENAME_LENGTH 32
 #define DIRECT_POINTERS 10
 
-typedef struct{
+typedef struct
+{
     uint8_t used;
     char filename[MAX_FILENAME_LENGTH];
     uint32_t size;
+    uint8_t type;
+    uint16_t parent_inode;
     uint32_t direct_blocks[DIRECT_POINTERS];
-
-}Inode;
+} Inode;
 
 int inode_init();
 int inode_allocate();

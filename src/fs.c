@@ -9,21 +9,108 @@
 
 static Superblock superblock;
 
-static int find_inode_by_name(const char *filename)
-{
-    for (uint32_t i = 0; i < TOTAL_INODES; i++)
-    {
-        Inode *inode = inode_get(i);
+static uint32_t current_inode = 0;
 
-        if (inode && inode->used &&
-            strcmp(inode->filename, filename) == 0)
+static int find_entry_in_directory(const uint32_t parent_inode, const char *filename)
+{
+    Inode *inode = inode_get(parent_inode);
+
+    for (uint32_t i = 0; i < DIRECT_POINTERS; i++)
+    {
+        if (inode->direct_blocks[i] != 0)
         {
-            return i;
+            uint8_t block_buffer[BLOCK_SIZE];
+
+            if (read_block(inode->direct_blocks[i], block_buffer) == -1)
+                return -1;
+
+            DirectoryEntry *entries = (DirectoryEntry *)block_buffer;
+
+            uint32_t entries_per_block = BLOCK_SIZE / sizeof(DirectoryEntry);
+
+            for (uint32_t j = 0; j < entries_per_block; j++)
+            {
+                if (strcmp(filename, entries[j].name) == 0)
+                {
+                    return entries[j].inode_number;
+                }
+            }
         }
     }
 
     return -1;
 }
+
+static add_entry_to_directory(uint32_t parent_inode, const char *filename, uint32_t inode_number)
+{
+    if (find_entry_in_directory(parent_inode, filename) != -1)
+        return -1;
+
+    Inode *inode = inode_get(parent_inode);
+
+    for (int i = 0; i < DIRECT_POINTERS; i++)
+    {
+        if (inode->direct_blocks[i] == 0)
+            continue;
+
+        uint8_t buffer_block[BLOCK_SIZE];
+
+        if (read_block(inode->direct_blocks[i], buffer_block) == -1)
+            return -1;
+
+        DirectoryEntry *entries = (DirectoryEntry *)buffer_block;
+
+        uint32_t entries_per_block = BLOCK_SIZE / sizeof(DirectoryEntry);
+
+        for (int j = 0; j < entries_per_block; j++)
+        {
+            if (entries[j].name[0] == '\0')
+            {
+                strcpy(entries[j].name, filename);
+                entries[j].inode_number = inode_number;
+
+                if (write_block(inode->direct_blocks[i], buffer_block) == -1)
+                    return -1;
+
+                return 0;
+            }
+        }
+
+        return -1;
+    }
+}
+
+int fs_mkdir(const char *filename)
+{
+    if (find_entry_in_directory(current_inode, filename) != -1)
+        return -1;
+
+    int inode_num = inode_allocate();
+
+    if (inode_num == -1)
+        return -1;
+
+    Inode inode;
+
+    if (inode_read(inode_num, &inode) == -1)
+        return -1;
+
+    strcpy(inode.filename, filename);
+    inode.type = 1;
+    inode.parent_inode = current_inode;
+    inode.size = 0;
+
+    memset(inode.direct_blocks, 0, sizeof(inode.direct_blocks));
+
+    if (inode_write(inode_num, &inode) == -1)
+        return -1;
+
+    if (add_entry_to_directory(current_inode, filename, inode_num) == -1)
+        return -1;
+
+    return inode_num;
+}
+
 
 int fs_create(const char *filename)
 {
@@ -33,7 +120,7 @@ int fs_create(const char *filename)
     if (strlen(filename) >= sizeof(((Inode *)0)->filename))
         return -1;
 
-    if (find_inode_by_name(filename) != -1)
+    if (find_entry_in_directory(current_inode, filename) != -1)
         return -1;
 
     int inode_num = inode_allocate();
@@ -113,7 +200,7 @@ int fs_unmount()
 
 int fs_exists(const char *filename)
 {
-    return find_inode_by_name(filename) != -1;
+    return find_entry_in_directory(current_inode, filename) != -1;
 }
 
 int fs_delete(const char *filename)
@@ -121,7 +208,7 @@ int fs_delete(const char *filename)
     if (filename == NULL)
         return -1;
 
-    int inode_num = find_inode_by_name(filename);
+    int inode_num = find_entry_in_directory(current_inode, filename);
 
     if (inode_num == -1)
         return -1;
@@ -153,7 +240,7 @@ int fs_write(const char *filename, const void *buffer, uint32_t size)
     if (size > DIRECT_POINTERS * BLOCK_SIZE)
         return -1;
 
-    int inode_num = find_inode_by_name(filename);
+    int inode_num = find_entry_in_directory(current_inode, filename);
     if (inode_num == -1)
         return -1;
 
@@ -161,7 +248,6 @@ int fs_write(const char *filename, const void *buffer, uint32_t size)
     if (inode_read(inode_num, &inode) == -1)
         return -1;
 
-    /* Free previously allocated blocks (overwrite semantics) */
     for (uint32_t i = 0; i < DIRECT_POINTERS; i++)
     {
         if (inode.direct_blocks[i] != 0)
@@ -182,7 +268,6 @@ int fs_write(const char *filename, const void *buffer, uint32_t size)
 
         inode.direct_blocks[i] = block;
 
-        /* Temporary block buffer */
         uint8_t block_buffer[BLOCK_SIZE] = {0};
 
         uint32_t offset = i * BLOCK_SIZE;
@@ -195,7 +280,6 @@ int fs_write(const char *filename, const void *buffer, uint32_t size)
 
         if (write_block(block, block_buffer) == -1)
         {
-            /* Rollback */
             for (uint32_t j = 0; j <= i; j++)
             {
                 if (inode.direct_blocks[j] != 0)
@@ -217,14 +301,12 @@ int fs_write(const char *filename, const void *buffer, uint32_t size)
     return 0;
 }
 
-
-
 int fs_read(const char *filename, void *buffer)
 {
     if (filename == NULL || buffer == NULL)
         return -1;
 
-    int inode_num = find_inode_by_name(filename);
+    int inode_num = find_entry_in_directory(current_inode, filename);
 
     if (inode_num == -1)
         return -1;
@@ -259,7 +341,6 @@ int fs_read(const char *filename, void *buffer)
     return inode.size;
 }
 
-
 void fs_list()
 {
     printf("\n========== MiniFS ==========\n");
@@ -280,5 +361,3 @@ void fs_list()
 
     printf("-----------------------------------------------\n");
 }
-
-
