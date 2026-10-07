@@ -380,15 +380,35 @@ void fs_list()
     printf("%-32s %10s\n", "Filename", "Size");
     printf("-----------------------------------------------\n");
 
-    for (uint32_t i = 0; i < TOTAL_INODES; i++)
-    {
-        Inode *inode = inode_get(i);
+    Inode inode;
 
-        if (inode != NULL && inode->used)
+    if(inode_read(current_inode, &inode) == -1)
+        return;
+    
+    if(inode.type == 0)
+        return;
+    
+    for (int i = 0 ; i < DIRECT_POINTERS ; i++)
+    {
+        if(inode.direct_blocks[i] != 0)
         {
-            printf("%-32s %10u bytes\n",
-                   inode->filename,
-                   inode->size);
+            uint8_t block_buffer[BLOCK_SIZE];
+
+            if(read_block(inode.direct_blocks[i], block_buffer) == -1)
+                return;
+
+            DirectoryEntry* entries = (DirectoryEntry*) block_buffer;
+
+            uint32_t entries_per_block = BLOCK_SIZE/sizeof(DirectoryEntry);
+
+            for (int j = 0 ; j < entries_per_block ; j++)
+            {
+                if(entries[j].name != '\0')
+                {
+                    Inode *child_inode = inode_get(entries[j].inode_number);
+                    printf("%-32s %10s\n",entries[j].name, child_inode->size);
+                }
+            }
         }
     }
 
