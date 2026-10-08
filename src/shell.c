@@ -39,41 +39,16 @@ void run_shell()
         {
             printf("\nAvailable Commands\n");
             printf("------------------\n");
-            printf("format\n");
-            printf("mount\n");
-            printf("unmount\n");
             printf("create <filename>\n");
             printf("write <filename>\n");
             printf("read <filename>\n");
             printf("delete <filename>\n");
+            printf("mkdir <dirname>\n");
+            printf("cd <dirname>\n");
+            printf("cd ..\n");
             printf("ls\n");
-            printf("stat <filename>\n");
             printf("help\n");
             printf("exit\n");
-        }
-
-        else if (strcmp(command, "format") == 0)
-        {
-            if (fs_format() == 0)
-                printf("Filesystem formatted.\n");
-            else
-                printf("Failed.\n");
-        }
-
-        else if (strcmp(command, "mount") == 0)
-        {
-            if (fs_mount() == 0)
-                printf("Filesystem mounted.\n");
-            else
-                printf("Failed.\n");
-        }
-
-        else if (strcmp(command, "unmount") == 0)
-        {
-            if (fs_unmount() == 0)
-                printf("Filesystem unmounted.\n");
-            else
-                printf("Failed.\n");
         }
 
         else if (sscanf(command, "create %31s", filename) == 1)
@@ -97,10 +72,6 @@ void run_shell()
             fs_list();
         }
 
-        else if (sscanf(command, "stat %31s", filename) == 1)
-        {
-            fs_stat(filename);
-        }
 
         else if (sscanf(command, "write %31s", filename) == 1)
         {
@@ -137,6 +108,30 @@ void run_shell()
                 printf("Failed.\n");
             }
         }
+
+        else if (sscanf(command, "mkdir %31s", filename) == 1){
+            if(fs_mkdir(filename) != -1)
+                printf("Created! \n");
+            else
+                printf("Failed.\n");
+        }
+
+        else if(strcmp(command , "cd ..") == 0)
+        {
+            if(fs_cd_parent() != -1)
+                printf("Moved to Parent! \n");
+            else    
+                printf("Failed! \n");
+        }
+
+        else if(sscanf(command, "cd %31s", filename) == 1){
+            if(fs_cd(filename) == 0)
+                printf("Done! \n");
+            
+            else
+                printf("Failed \n");
+        }
+
 
         else
         {
