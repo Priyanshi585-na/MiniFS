@@ -13,12 +13,23 @@ int inode_init()
     memset(inode_bitmap, 0, BLOCK_SIZE);
     memset(inode_table, 0, sizeof(inode_table));
 
+    inode_bitmap[0] |= 1 << 0;
+
+    if(write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
+        return -1;
+
+    inode_table[0].used = 1;
+    strcpy(inode_table[0].filename, "/");
+    inode_table[0].type = 1;
+    inode_table[0].parent_inode = 0;
+    inode_table[0].size = 0;
+
+    memset(inode_table[0].direct_blocks, 0, sizeof(inode_table[0].direct_blocks));
+
     for (uint32_t i = 0; i < INODE_TABLE_BLOCKS; i++)
     {
         if (write_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE) == -1)
-        {
             return -1;
-        }
     }
     return 0;
 }

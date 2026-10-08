@@ -75,9 +75,39 @@ static add_entry_to_directory(uint32_t parent_inode, const char *filename, uint3
                 return 0;
             }
         }
-
-        return -1;
     }
+
+
+    int new_block = bitmap_allocate();
+
+    if(new_block == -1)
+        return -1;
+    
+    for (uint32_t i = 0 ; i < DIRECT_POINTERS ; i++)
+    {
+        if(inode->direct_blocks[i] == 0)
+        {
+            inode->direct_blocks[i] = new_block;
+            uint8_t buffer_block[BLOCK_SIZE] = {0};
+
+            DirectoryEntry *entries = (DirectoryEntry *)buffer_block;
+
+            strcpy(entries[0].name, filename);
+            entries[0].inode_number = inode_number;
+
+            if(write_block(new_block, buffer_block) == -1)
+                return -1;
+            
+            if(inode_write(parent_inode, inode) == -1)
+                return -1;
+
+
+            return 0;
+        }
+    }
+
+    bitmap_free(new_block);
+    return -1;
 }
 
 int fs_mkdir(const char *filename)
