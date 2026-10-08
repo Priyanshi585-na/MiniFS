@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 
 #include "bitmap.h"
 #include "disk.h"
@@ -15,7 +16,7 @@ int inode_init()
 
     inode_bitmap[0] |= 1 << 0;
 
-    if(write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
+    if (write_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
         return -1;
 
     inode_table[0].used = 1;
@@ -55,7 +56,6 @@ int inode_allocate()
             uint32_t block = INODE_TABLE_START + (inode / inodes_per_block);
 
             void *buffer = ((uint8_t *)inode_table) + (inode / inodes_per_block) * BLOCK_SIZE;
-
 
             if (write_block(block, buffer) == -1)
                 return -1;
@@ -129,13 +129,16 @@ int inode_write(uint32_t inode, const Inode *in)
 
 int inode_load()
 {
+
     if (read_block(INODE_BITMAP_BLOCK, inode_bitmap) == -1)
         return -1;
 
     for (uint32_t i = 0; i < INODE_TABLE_BLOCKS; i++)
     {
+
         if (read_block(INODE_TABLE_START + i, ((uint8_t *)inode_table) + i * BLOCK_SIZE) == -1)
             return -1;
+        
     }
     return 0;
 }

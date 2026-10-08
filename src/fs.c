@@ -37,11 +37,11 @@ static int find_entry_in_directory(const uint32_t parent_inode, const char *file
             }
         }
     }
-
+    
     return -1;
 }
 
-static add_entry_to_directory(uint32_t parent_inode, const char *filename, uint32_t inode_number)
+static int add_entry_to_directory(uint32_t parent_inode, const char *filename, uint32_t inode_number)
 {
     if (find_entry_in_directory(parent_inode, filename) != -1)
         return -1;
@@ -62,7 +62,7 @@ static add_entry_to_directory(uint32_t parent_inode, const char *filename, uint3
 
         uint32_t entries_per_block = BLOCK_SIZE / sizeof(DirectoryEntry);
 
-        for (int j = 0; j < entries_per_block; j++)
+        for (uint32_t j = 0; j < entries_per_block; j++)
         {
             if (entries[j].name[0] == '\0')
             {
@@ -119,24 +119,24 @@ int fs_mkdir(const char *filename)
 
     if (inode_num == -1)
         return -1;
-
+    
     Inode inode;
-
+    
     if (inode_read(inode_num, &inode) == -1)
         return -1;
-
+    
     strcpy(inode.filename, filename);
     inode.type = 1;
     inode.parent_inode = current_inode;
     inode.size = 0;
-
+    
     memset(inode.direct_blocks, 0, sizeof(inode.direct_blocks));
-
+    
     if (inode_write(inode_num, &inode) == -1)
         return -1;
-
+    
     if (add_entry_to_directory(current_inode, filename, inode_num) == -1)
-        return -1;
+    return -1;
 
     return inode_num;
 }
@@ -201,6 +201,9 @@ int fs_create(const char *filename)
 
     if (inode_write(inode_num, &inode) == -1)
         return -1;
+    
+    if (add_entry_to_directory(current_inode, filename, inode_num) == -1)
+    return -1;
 
     return 0;
 }
@@ -431,12 +434,12 @@ void fs_list()
 
             uint32_t entries_per_block = BLOCK_SIZE/sizeof(DirectoryEntry);
 
-            for (int j = 0 ; j < entries_per_block ; j++)
+            for (uint32_t j = 0 ; j < entries_per_block ; j++)
             {
-                if(entries[j].name != '\0')
+                if(entries[j].name[0] != '\0')
                 {
                     Inode *child_inode = inode_get(entries[j].inode_number);
-                    printf("%-32s %10s\n",entries[j].name, child_inode->size);
+                    printf("%-32s %10d\n",entries[j].name, child_inode->size);
                 }
             }
         }

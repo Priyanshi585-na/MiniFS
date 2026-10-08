@@ -11,7 +11,7 @@ int save_superblock(const Superblock *sb){
 }
 
 int load_superblock(Superblock *sb){
-    char block[BLOCK_SIZE];
+    char block[BLOCK_SIZE] = {0};
 
     if(read_block(SUPERBLOCK_BLOCK, block) == -1) return -1;
 
