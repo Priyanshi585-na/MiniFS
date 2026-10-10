@@ -46,6 +46,7 @@ void run_shell()
             printf("mkdir <dirname>\n");
             printf("cd <dirname>\n");
             printf("cd ..\n");
+            printf("pwd\n");
             printf("ls\n");
             printf("help\n");
             printf("exit\n");
@@ -107,6 +108,12 @@ void run_shell()
             {
                 printf("Failed.\n");
             }
+        }
+
+        else if(strcmp(command, "pwd") == 0)
+        {
+            if(fs_pwd() == -1)
+                printf("Failed.");
         }
 
         else if (sscanf(command, "mkdir %31s", filename) == 1){
