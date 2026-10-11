@@ -123,3 +123,8 @@ fs_stat()
 - Timestamps
 - Rename support
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+
