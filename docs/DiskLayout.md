@@ -12,9 +12,9 @@ MiniFS stores all filesystem data inside a virtual disk image.
 +---------+-------------------------+
 | Block 2 | Inode Bitmap            |
 +---------+-------------------------+
-| 3 - 34  | Inode Table             |
+| 3 - 23  | Inode Table             |
 +---------+-------------------------+
-|35-4095  | Data Blocks             |
+|24-4095  | Data Blocks             |
 +---------+-------------------------+
 ```
 
@@ -53,6 +53,10 @@ Each inode stores:
 | File Size            |
 +----------------------+
 | Direct Block Ptr[10] |
++----------------------+
+| Type                 |
++----------------------+
+| Parent Inode number  |
 +----------------------+
 ```
 

@@ -97,6 +97,8 @@ Each inode stores:
 - File size
 - Allocation status
 - Direct block pointers
+- Parent inode number
+- Type (0 for file/1 for directory)
 
 The current implementation supports 10 direct pointers per file.
 
@@ -113,7 +115,9 @@ The filesystem layer exposes operations to applications:
 - Write file
 - Read file
 - List files
-- Display file metadata
+- Create Directory
+- Change Directory
+- Check the preset working directory
 
 ---
 
@@ -169,7 +173,6 @@ MiniFS is designed for learning operating system concepts.
 
 Current limitations include:
 
-- Flat namespace (no directories)
 - Maximum of 10 direct data blocks per file
 - No indirect block pointers
 - No permissions
