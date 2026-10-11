@@ -12,6 +12,7 @@ typedef struct
 int fs_mkdir(const char *filename);
 int fs_cd(const char* filename);
 int fs_cd_parent();
+int fs_pwd();
 int fs_create(const char *filename);
 int fs_format();
 int fs_mount();

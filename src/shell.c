@@ -119,8 +119,6 @@ void run_shell()
         else if (sscanf(command, "mkdir %31s", filename) == 1){
             if(fs_mkdir(filename) != -1)
                 printf("Created! \n");
-            else
-                printf("Failed.\n");
         }
 
         else if(strcmp(command , "cd ..") == 0)
@@ -134,9 +132,6 @@ void run_shell()
         else if(sscanf(command, "cd %31s", filename) == 1){
             if(fs_cd(filename) == 0)
                 printf("Done! \n");
-            
-            else
-                printf("Failed \n");
         }
 
 

@@ -111,17 +111,25 @@ static int add_entry_to_directory(uint32_t parent_inode, const char *filename, u
 int fs_mkdir(const char *filename)
 {
     if (find_entry_in_directory(current_inode, filename) != -1)
+    {
+        printf("%s already exists", filename);
         return -1;
+    }
 
     int inode_num = inode_allocate();
 
     if (inode_num == -1)
+    {
+        printf("Something went wrong");
         return -1;
-
+    }
     Inode inode;
 
     if (inode_read(inode_num, &inode) == -1)
+    {
+        printf("Something went wrong");
         return -1;
+    }
 
     strcpy(inode.filename, filename);
     inode.type = 1;
@@ -131,10 +139,16 @@ int fs_mkdir(const char *filename)
     memset(inode.direct_blocks, 0, sizeof(inode.direct_blocks));
 
     if (inode_write(inode_num, &inode) == -1)
+    {
+        printf("Something went wrong");
         return -1;
+    }
 
     if (add_entry_to_directory(current_inode, filename, inode_num) == -1)
+    {
+        printf("Something went wrong");
         return -1;
+    }
 
     return inode_num;
 }
@@ -144,15 +158,24 @@ int fs_cd(const char *filename)
     int inode_num = find_entry_in_directory(current_inode, filename);
 
     if (inode_num == -1)
+    {
+        printf("Something went wrong");
         return -1;
+    }
 
     Inode inode;
 
     if (inode_read(inode_num, &inode) == -1)
+    {
+        printf("Something went wrong");
         return -1;
+    }
 
     if (inode.type == 0)
+    {
+        printf("%s is not a directory", filename);
         return -1;
+    }
 
     current_inode = inode_num;
     return 0;
@@ -179,12 +202,17 @@ int fs_pwd()
     char path[TOTAL_INODES][MAX_FILENAME_LENGTH];
     int count = 0;
 
-    while (inode.parent_inode != 0)
-    {
-        strcpy(path[count++], inode.filename);
+    uint32_t inode_num = current_inode;
 
-        if (inode_read(inode.parent_inode, &inode) == -1)
+    while (inode_num != 0)
+    {
+        if (inode_read(inode_num, &inode) == -1)
             return -1;
+
+        strcpy(path[count], inode.filename);
+        count++;
+
+        inode_num = inode.parent_inode;
     }
 
     printf("/");
